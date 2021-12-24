@@ -1,7 +1,5 @@
-import { exec } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
 import worker from 'worker_threads';
-import fileType from 'file-type';
 import Express from 'express';
 import cors from 'cors';
 import compression, { filter as _filter } from 'compression';
