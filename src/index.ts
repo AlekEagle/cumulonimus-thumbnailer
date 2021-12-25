@@ -26,14 +26,16 @@ if (!existsSync('/tmp/cumulonimbus-preview-cache'))
 
 app.get('/:file', async (req, res) => {
   if (existsSync(`/tmp/cumulonimbus-preview-cache/${req.params.file}.webp`)) {
-    console.debug('Preview cached, not generating another.');
+    console.debug(
+      `Preview cached for ${req.params.file}, not generating another.`
+    );
     res
       .append('Content-Type', 'image/webp')
       .sendFile(`/tmp/cumulonimbus-preview-cache/${req.params.file}.webp`);
     return;
   }
   if (!existsSync(`/var/www-uploads/${req.params.file}`)) {
-    console.debug('File does not exist. File: ', req.params.file);
+    console.debug('File does not exist. File: %s', req.params.file);
     res.status(404).end();
     return;
   }
@@ -43,10 +45,10 @@ app.get('/:file', async (req, res) => {
     }
   });
   thumbWorker.on('online', () => {
-    console.debug('Generating...');
+    console.debug(`Generating preview for ${req.params.file}...`);
   });
   thumbWorker.on('exit', () => {
-    console.debug('Done');
+    console.debug(`Done generating preview for ${req.params.file}.`);
   });
   thumbWorker.on('message', (status: number) => {
     if (status !== 200) {
@@ -59,4 +61,6 @@ app.get('/:file', async (req, res) => {
   });
 });
 
-app.listen(port);
+app.listen(port, () => {
+  console.log(`Listening on port ${port}.`);
+});
