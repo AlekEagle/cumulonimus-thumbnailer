@@ -14,12 +14,7 @@ const port: number =
   8100 + (!process.env.instance ? 0 : Number(process.env.instance));
 const app = Express();
 
-app.use(
-  cors({
-    origin: true
-  }),
-  compression({ filter: shouldCompress })
-);
+app.use(cors({}), compression({ filter: shouldCompress }));
 
 if (!existsSync('/tmp/cumulonimbus-preview-cache'))
   mkdirSync('/tmp/cumulonimbus-preview-cache');
