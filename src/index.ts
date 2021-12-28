@@ -2,7 +2,12 @@ import { existsSync, mkdirSync } from 'fs';
 import worker from 'worker_threads';
 import Express from 'express';
 import cors from 'cors';
+import Logger, { Level } from './Logger';
 import compression, { filter as _filter } from 'compression';
+
+global.console = new Logger(
+  process.env.DEBUG ? Level.DEBUG : Level.INFO
+) as any;
 
 function shouldCompress(req: Express.Request, res: Express.Response): boolean {
   if (req.headers['x-no-compression']) {
