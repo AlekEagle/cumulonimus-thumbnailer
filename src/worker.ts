@@ -12,7 +12,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
   if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
     if (a.mime.startsWith('video'))
       exec(
-        `ffmpeg -ss 00:00:01.00 -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
+        `ffmpeg -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
         (error, stdout, stderr) => {
           if (error) {
             worker.parentPort.postMessage(500);

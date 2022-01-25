@@ -1,9 +1,10 @@
-import { existsSync, mkdirSync } from 'fs';
-import worker from 'worker_threads';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import worker from 'node:worker_threads';
 import Express from 'express';
 import cors from 'cors';
 import Logger, { Level } from './Logger';
 import compression, { filter as _filter } from 'compression';
+const packageJSON = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 global.console = new Logger(
   process.env.DEBUG ? Level.DEBUG : Level.INFO
@@ -23,6 +24,10 @@ app.use(cors({}), compression({ filter: shouldCompress }));
 
 if (!existsSync('/tmp/cumulonimbus-preview-cache'))
   mkdirSync('/tmp/cumulonimbus-preview-cache');
+
+app.all('/', async (req, res) => {
+  res.status(200).json({ hello: 'world', version: packageJSON.version });
+});
 
 app.get('/:file', async (req, res) => {
   if (existsSync(`/tmp/cumulonimbus-preview-cache/${req.params.file}.webp`)) {
