@@ -4,43 +4,35 @@ import fileType from 'file-type';
 
 if (worker.isMainThread) throw new Error("can't be ran as main thread");
 (async function () {
-  let a = await fileType.fromFile(`/var/www-uploads/${worker.workerData.file}`);
-  if (a === undefined) {
-    worker.parentPort.postMessage(415);
-    process.exit(0);
-  }
-  if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
-    if (a.mime.startsWith('video'))
-      exec(
-        `ffmpeg -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
-        (error, stdout, stderr) => {
-          if (error) {
-            worker.parentPort.postMessage(500);
-            console.error(error, stderr, stdout);
-            process.exit(0);
-          } else {
-            worker.parentPort.postMessage(200);
-            process.exit(0);
-          }
-        }
-      );
-    else {
-      exec(
-        `ffmpeg -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
-        (error, stdout, stderr) => {
-          if (error) {
-            worker.parentPort.postMessage(500);
-            console.error(error, stderr, stdout);
-            process.exit(0);
-          } else {
-            worker.parentPort.postMessage(200);
-            process.exit(0);
-          }
-        }
-      );
+  try {
+    let a = await fileType.fromFile(
+      `/var/www-uploads/${worker.workerData.file}`
+    );
+    if (a === undefined) {
+      worker.parentPort.postMessage(415);
+      process.exit(0);
     }
-  } else {
-    worker.parentPort.postMessage(415);
+    if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
+      exec(
+        `ffmpeg -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
+        (error, stdout, stderr) => {
+          if (error) {
+            worker.parentPort.postMessage(500);
+            console.error(error, stderr, stdout);
+            process.exit(0);
+          } else {
+            worker.parentPort.postMessage(200);
+            process.exit(0);
+          }
+        }
+      );
+    } else {
+      worker.parentPort.postMessage(415);
+      process.exit(0);
+    }
+  } catch (e) {
+    worker.parentPort.postMessage(500);
+    console.error(e);
     process.exit(0);
   }
 })();
