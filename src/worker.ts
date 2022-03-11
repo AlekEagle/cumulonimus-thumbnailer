@@ -21,6 +21,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
             console.error(error, stderr, stdout);
             process.exit(0);
           } else {
+            console.log(stdout);
             exec(`chmod +r+w /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
             (error, stdout, stderr) => {
               if (error) {
