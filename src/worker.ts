@@ -26,6 +26,21 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         }
       );
+    }
+    if ((a.mime as any) === 'text/html' || a.mime === 'application/pdf') {
+      exec(
+        `chromium --headless --window-size=256,256 --screenshot=/tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp file:///var/www-uploads/${worker.workerData.file}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            worker.parentPort.postMessage(500);
+            console.error(error, stderr, stdout);
+            process.exit(0);
+          } else {
+            worker.parentPort.postMessage(200);
+            process.exit(0);
+          }
+        }
+      );
     } else {
       worker.parentPort.postMessage(415);
       process.exit(0);
