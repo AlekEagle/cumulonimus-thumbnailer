@@ -13,12 +13,10 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
       worker.parentPort.postMessage(415);
       process.exit(0);
     }
-    if (
-      worker.workerData.file.match(/\.html?$/) ||
-      a.mime === 'application/pdf'
-    ) {
+    if (worker.workerData.file.match(/\.html?$/)) {
       const browser = await puppeteer.launch(),
         page = await browser.newPage();
+      page.setViewport({ width: 256, height: 256 });
       await page.goto(`file:///var/www-uploads/${worker.workerData.file}`, {
         waitUntil: 'networkidle2'
       });
@@ -38,11 +36,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         }
       );
-    } else {
-      worker.parentPort.postMessage(415);
-      process.exit(0);
-    }
-    if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
+    } else if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
       exec(
         `ffmpeg -i /var/www-uploads/${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
         (error, stdout, stderr) => {
@@ -56,6 +50,9 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         }
       );
+    } else {
+      worker.parentPort.postMessage(415);
+      process.exit(0);
     }
   } catch (e) {
     worker.parentPort.postMessage(500);
