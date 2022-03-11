@@ -21,8 +21,17 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
             console.error(error, stderr, stdout);
             process.exit(0);
           } else {
-            worker.parentPort.postMessage(200);
-            process.exit(0);
+            exec(`chmod +r+w /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
+            (error, stdout, stderr) => {
+              if (error) {
+                worker.parentPort.postMessage(500);
+                console.error(error, stderr, stdout);
+                process.exit(0);
+              } else {
+                worker.parentPort.postMessage(200);
+                process.exit(0);
+              }
+            });
           }
         }
       );
