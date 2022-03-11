@@ -8,7 +8,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
     let a = await fileType.fromFile(
       `/var/www-uploads/${worker.workerData.file}`
     );
-    if (a === undefined) {
+    if (a === undefined && !worker.workerData.file.match(/\.html?$/)) {
       worker.parentPort.postMessage(415);
       process.exit(0);
     }
@@ -27,7 +27,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
         }
       );
     }
-    if ((a.mime as any) === 'text/html' || a.mime === 'application/pdf') {
+    if (worker.workerData.file.match(/\.html?$/) || a.mime === 'application/pdf') {
       exec(
         `chromium --headless --window-size=256,256 --screenshot=/tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp file:///var/www-uploads/${worker.workerData.file}`,
         (error, stdout, stderr) => {
