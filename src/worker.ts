@@ -50,6 +50,20 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         }
       );
+    } else if (a.mime === 'application/pdf') {
+      exec(
+        `pdftoppm -singlefile -png -x 0 -y 0 -W 256 -H 256 -scale-to 256 | ffmpeg -i - -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
+        (error, stdout, stderr) => {
+          if (error) {
+            worker.parentPort.postMessage(500);
+            console.error(error, stderr, stdout);
+            process.exit(0);
+          } else {
+            worker.parentPort.postMessage(200);
+            process.exit(0);
+          }
+        }
+      );
     } else {
       worker.parentPort.postMessage(415);
       process.exit(0);
