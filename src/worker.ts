@@ -77,6 +77,21 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         }
       );
+    } else if (a.mime.startsWith('font')) {
+      const browser = await puppeteer.launch(),
+        page = await browser.newPage();
+      page.setViewport({ width: 256, height: 256 });
+      await page.goto(
+        `file://${process.cwd()}/font-renderer.html?font=${
+          worker.workerData.file
+        }`,
+        {
+          waitUntil: 'networkidle2'
+        }
+      );
+      await page.screenshot({
+        path: `/tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`
+      });
     } else {
       worker.parentPort.postMessage(415);
       process.exit(0);
