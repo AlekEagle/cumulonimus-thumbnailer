@@ -110,6 +110,8 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
       await page.screenshot({
         path: `/tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`
       });
+      worker.parentPort.postMessage(200);
+      process.exit(0);
     } else {
       worker.parentPort.postMessage(415);
       process.exit(0);
