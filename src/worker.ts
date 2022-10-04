@@ -10,7 +10,7 @@ function restartTimeout(browser: puppeteer.Browser | null) {
   if (timeout !== null) clearTimeout(timeout);
   timeout = setTimeout(() => {
     if (browser !== null) browser.close();
-    worker.parentPort.postMessage(504);
+    worker.parentPort.postMessage(408);
     process.exit(1);
   }, 15e3);
 }
@@ -103,7 +103,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           worker.workerData.file
         }`,
         {
-          waitUntil: 'networkidle2'
+          waitUntil: 'load'
         }
       );
       restartTimeout(browser);
