@@ -59,7 +59,7 @@ app.get('/:file', async (req, res) => {
   });
   thumbWorker.on('message', (status: number) => {
     if (status !== 200) {
-      res.status(status).end();
+      res.status(status).send('Unable to generate preview.');
     } else {
       res
         .append('Content-Type', 'image/webp')
