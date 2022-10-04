@@ -52,8 +52,10 @@ app.get('/:file', async (req, res) => {
   thumbWorker.on('online', () => {
     console.debug(`Generating preview for ${req.params.file}...`);
   });
-  thumbWorker.on('exit', () => {
-    console.debug(`Done generating preview for ${req.params.file}.`);
+  thumbWorker.on('exit', code => {
+    if (code === 0)
+      console.debug(`Done generating preview for ${req.params.file}.`);
+    else console.debug(`Unable to generate preview for ${req.params.file}`);
   });
   thumbWorker.on('message', (status: number) => {
     if (status !== 200) {
