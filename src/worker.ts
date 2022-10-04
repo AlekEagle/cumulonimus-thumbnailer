@@ -12,7 +12,7 @@ function restartTimeout(browser: puppeteer.Browser | null) {
     if (browser !== null) browser.close();
     worker.parentPort.postMessage(504);
     process.exit(1);
-  }, 10e3);
+  }, 15e3);
 }
 
 if (worker.isMainThread) throw new Error("can't be ran as main thread");
