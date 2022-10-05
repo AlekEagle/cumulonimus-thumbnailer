@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import worker from 'node:worker_threads';
 import Express from 'express';
-import cors from 'cors';
 import Logger, { Level } from './Logger';
 import compression, { filter as _filter } from 'compression';
 const packageJSON = JSON.parse(readFileSync('./package.json', 'utf8'));
@@ -20,7 +19,7 @@ const port: number =
   8100 + (!process.env.instance ? 0 : Number(process.env.instance));
 const app = Express();
 
-app.use(cors({}), compression({ filter: shouldCompress }));
+app.use(compression({ filter: shouldCompress }));
 
 if (!existsSync('/tmp/cumulonimbus-preview-cache'))
   mkdirSync('/tmp/cumulonimbus-preview-cache');
