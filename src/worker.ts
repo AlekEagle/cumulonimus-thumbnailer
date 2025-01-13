@@ -29,7 +29,7 @@ function hasVideoOrImageStream(file: string): Promise<boolean> {
           console.error(error, stderr, stdout);
           res(false);
         } else {
-          res(stdout === 'video');
+          res(stdout.trim() === 'video');
         }
       },
     );
@@ -46,7 +46,7 @@ function hasAudioStream(file: string): Promise<boolean> {
           console.error(error, stderr, stdout);
           res(false);
         } else {
-          res(stdout === 'audio');
+          res(stdout.trim() === 'audio');
         }
       },
     );
