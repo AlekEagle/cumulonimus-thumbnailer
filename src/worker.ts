@@ -150,7 +150,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
       });
       worker.parentPort.postMessage(200);
       process.exit(0);
-    } else if (hasAudioStream(worker.workerData.file)) {
+    } else if (await hasAudioStream(worker.workerData.file)) {
       restartTimeout(null);
       exec(
         `ffmpeg -i ${process.env.BASE_UPLOAD_PATH}${worker.workerData.file} -filter_complex 'showwavespic=256x256' -frames:v 1 ${process.env.OUTPUT_PATH}${worker.workerData.file}.webp`,
