@@ -90,7 +90,11 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         },
       );
-    } else if (await hasVideoOrImageStream(worker.workerData.file)) {
+    } else if (
+      await hasVideoOrImageStream(
+        `${process.env.BASE_UPLOAD_PATH}${worker.workerData.file}`,
+      )
+    ) {
       restartTimeout(null);
       exec(
         `ffmpeg -i ${process.env.BASE_UPLOAD_PATH}${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
@@ -152,7 +156,11 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
       });
       worker.parentPort.postMessage(200);
       process.exit(0);
-    } else if (await hasAudioStream(worker.workerData.file)) {
+    } else if (
+      await hasAudioStream(
+        `${process.env.BASE_UPLOAD_PATH}${worker.workerData.file}`,
+      )
+    ) {
       restartTimeout(null);
       exec(
         `ffmpeg -i ${process.env.BASE_UPLOAD_PATH}${worker.workerData.file} -filter_complex 'showwavespic=256x256' -frames:v 1 ${process.env.OUTPUT_PATH}${worker.workerData.file}.webp`,
