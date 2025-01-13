@@ -3,6 +3,7 @@ import worker from 'node:worker_threads';
 import Express from 'express';
 import Logger, { Level } from './Logger';
 import compression, { filter as _filter } from 'compression';
+import DevelopmentCORS from './DevelopmentCORS';
 import { config } from 'dotenv';
 const packageJSON = JSON.parse(readFileSync('./package.json', 'utf8'));
 
@@ -23,6 +24,10 @@ const port: number =
 const app = Express();
 
 app.use(compression({ filter: shouldCompress }));
+
+if (process.env.DEBUG) {
+  app.use(DevelopmentCORS());
+}
 
 if (!existsSync(process.env.OUTPUT_PATH)) mkdirSync(process.env.OUTPUT_PATH);
 

@@ -1,15 +1,16 @@
 import { exec } from 'child_process';
 import worker from 'worker_threads';
 import fileType from 'file-type';
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import { unlink } from 'fs/promises';
 import { config } from 'dotenv';
 
+// Configure us some environment variables
 config();
 
-let timeout: NodeJS.Timer = null;
+let timeout: ReturnType<typeof setTimeout> = null;
 
-function restartTimeout(browser: puppeteer.Browser | null) {
+function restartTimeout(browser: Browser | null) {
   if (timeout !== null) clearTimeout(timeout);
   timeout = setTimeout(() => {
     if (browser !== null) browser.close();
@@ -18,6 +19,37 @@ function restartTimeout(browser: puppeteer.Browser | null) {
   }, 15e3);
 }
 
+// Test if file has a video stream or image stream
+async function hasVideoOrImageStream(file: string): Promise<boolean> {
+  const a = exec(
+    `ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
+  );
+  let hasVideo = false;
+  a.stdout.on('data', (data) => {
+    if (data === 'video') hasVideo = true;
+  });
+  a.on('exit', () => {
+    return hasVideo;
+  });
+  return hasVideo;
+}
+
+// Test if file has an audio stream
+async function hasAudioStream(file: string): Promise<boolean> {
+  const a = exec(
+    `ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
+  );
+  let hasAudio = false;
+  a.stdout.on('data', (data) => {
+    if (data === 'audio') hasAudio = true;
+  });
+  a.on('exit', () => {
+    return hasAudio;
+  });
+  return hasAudio;
+}
+
+// This is a worker thread, so we can't run it as the main thread
 if (worker.isMainThread) throw new Error("can't be ran as main thread");
 (async function () {
   try {
@@ -56,7 +88,7 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
           }
         },
       );
-    } else if (a.mime.startsWith('video') || a.mime.startsWith('image')) {
+    } else if (await hasVideoOrImageStream(worker.workerData.file)) {
       restartTimeout(null);
       exec(
         `ffmpeg -i ${process.env.BASE_UPLOAD_PATH}${worker.workerData.file} -vf 'scale=256:256:force_original_aspect_ratio=1,format=rgba,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=#00000000' -vframes 1 /tmp/cumulonimbus-preview-cache/${worker.workerData.file}.webp`,
@@ -118,6 +150,21 @@ if (worker.isMainThread) throw new Error("can't be ran as main thread");
       });
       worker.parentPort.postMessage(200);
       process.exit(0);
+    } else if (hasAudioStream(worker.workerData.file)) {
+      restartTimeout(null);
+      exec(
+        `ffmpeg -i ${process.env.BASE_UPLOAD_PATH}${worker.workerData.file} -filter_complex 'showwavespic=256x256' -frames:v 1 ${process.env.OUTPUT_PATH}${worker.workerData.file}.webp`,
+        (error, stdout, stderr) => {
+          if (error) {
+            worker.parentPort.postMessage(500);
+            console.error(error, stderr, stdout);
+            process.exit(0);
+          } else {
+            worker.parentPort.postMessage(200);
+            process.exit(0);
+          }
+        },
+      );
     } else {
       worker.parentPort.postMessage(415);
       process.exit(0);
