@@ -20,33 +20,35 @@ function restartTimeout(browser: Browser | null) {
 }
 
 // Test if file has a video stream or image stream
-async function hasVideoOrImageStream(file: string): Promise<boolean> {
-  const a = exec(
-    `ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
-  );
-  let hasVideo = false;
-  a.stdout.on('data', (data) => {
-    if (data === 'video') hasVideo = true;
+function hasVideoOrImageStream(file: string): Promise<boolean> {
+  return new Promise((res) => {
+    const a = exec(
+      `ffprobe -v error -select_streams v:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
+    );
+    let hasVideo = false;
+    a.stdout.on('data', (data) => {
+      if (data === 'video') hasVideo = true;
+    });
+    a.on('exit', () => {
+      res(hasVideo);
+    });
   });
-  a.on('exit', () => {
-    return hasVideo;
-  });
-  return hasVideo;
 }
 
 // Test if file has an audio stream
-async function hasAudioStream(file: string): Promise<boolean> {
-  const a = exec(
-    `ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
-  );
-  let hasAudio = false;
-  a.stdout.on('data', (data) => {
-    if (data === 'audio') hasAudio = true;
+function hasAudioStream(file: string): Promise<boolean> {
+  return new Promise((res) => {
+    const a = exec(
+      `ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of default=noprint_wrappers=1:nokey=1 ${file}`,
+    );
+    let hasAudio = false;
+    a.stdout.on('data', (data) => {
+      if (data === 'audio') hasAudio = true;
+    });
+    a.on('exit', () => {
+      res(hasAudio);
+    });
   });
-  a.on('exit', () => {
-    return hasAudio;
-  });
-  return hasAudio;
 }
 
 // This is a worker thread, so we can't run it as the main thread
